@@ -1,0 +1,11 @@
+{
+	"calva.replConnectSequences": [
+		{
+			"name": "deps.edn",
+			"projectType": "deps.edn",
+			"autoSelectForJackIn": true
+		}
+	],
+	"calva.autoOpenInspector": false,
+	"calva.fmt.configPath": ".cljfmt.edn"
+}
