@@ -1,5 +1,6 @@
 (ns aoc24.main
   (:require [clojure.core.matrix :as cm]
+            [clojure.math.combinatorics :as combo]
             [clojure.pprint :refer [pprint]]
             [clojure.set :as set]
             [clojure.string :as str]))
@@ -26,6 +27,20 @@
                   (when (not= idx n)
                     item))
                 coll))
+
+(defn idx-of [coll value]
+  (first (keep-indexed (fn [idx v]
+                         (when (= v value)
+                           idx))
+                       coll)))
+
+(defn find-first [pred coll]
+  (first (filter pred coll)))
+
+(defn insert-at-idx [coll idx val]
+  (concat (take idx coll)
+          [val]
+          (drop idx coll)))
 
 ;; ---------------------------------------------------------------------------
 ;; Day 1
@@ -214,3 +229,80 @@
   ;
   )
 
+;; ---------------------------------------------------------------------------
+;; Day 5
+
+(defn day-5-1 []
+  (let [input (read-input "5.1")
+        [rules-strs _ updates-strs] (partition-by #(= "" %) input)
+        rules (map #(str/split % #"\|") rules-strs)
+        updates (map #(str/split % #",") updates-strs)
+
+        rule-ok?
+        (fn [u [l r]]
+          (or (not (and (contains? (set u) l)
+                        (contains? (set u) r)))
+              (< (idx-of u l)
+                 (idx-of u r))))
+
+        in-order?
+        (fn [u]
+          (->> (for [r rules]
+                 (rule-ok? u r))
+               (every? true?)))
+
+        middle-page
+        (fn [u]
+          (nth u (/ (count u) 2)))]
+
+    (->> updates
+         (filter in-order?)
+         (map middle-page)
+         (map ->int)
+         (apply +))))
+
+(defn day-5-2 []
+  (let [input (read-input "5.1")
+        [rules-strs _ updates-strs] (partition-by #(= "" %) input)
+        rules (map #(str/split % #"\|") rules-strs)
+        updates (map #(str/split % #",") updates-strs)
+
+        rule-ok?
+        (fn [u [l r]]
+          (or (not (and (contains? (set u) l)
+                        (contains? (set u) r)))
+              (< (idx-of u l)
+                 (idx-of u r))))
+
+        in-order?
+        (fn [u]
+          (->> (for [r rules]
+                 (rule-ok? u r))
+               (every? true?)))
+
+        middle-page
+        (fn [u]
+          (nth u (/ (count u) 2)))
+
+        into-order
+        (fn [u]
+          (reduce
+           (fn [acc page]
+             (let [variations (for [i (range (inc (count acc)))]
+                                (insert-at-idx acc i page))]
+               (find-first in-order? variations)))
+           [(first u)]
+           (rest u)))]
+
+    (->> updates
+         (remove in-order?)
+         (map into-order)
+         (map middle-page)
+         (map ->int)
+         (apply +))))
+
+(comment
+  (day-5-1)
+  (day-5-2)
+  ;
+  )
