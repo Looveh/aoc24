@@ -1,5 +1,6 @@
 (ns aoc24.main
   (:require [clojure.core.matrix :as cm]
+            [clojure.pprint :refer [pprint]]
             [clojure.set :as set]
             [clojure.string :as str]))
 
@@ -49,7 +50,6 @@
 (comment
   (day-1-1)
   (day-1-2)
-
   ;
   )
 
@@ -97,11 +97,32 @@
 ;; Day 3
 
 (defn day-3-1 []
-  ; TODO
-  )
+  (let [mul-line (fn [line]
+                   (->> line
+                        (re-seq #"mul\((\d+),(\d+)\)")
+                        (map (fn [[_ a b]]
+                               (* (->int a) (->int b))))
+                        (apply +)))]
+    (->> (read-input "3.1")
+         (map mul-line)
+         (apply +))))
 
 (defn day-3-2 []
-  ; TODO
+  (->> (read-input "3.1")
+       (apply str)
+       (#(str/split % #"do\(\)"))
+       (map #(str/split % #"don't\(\).*$"))
+       (map first)
+       (apply str)
+       (re-seq #"mul\((\d+),(\d+)\)")
+       (map (fn [[_ a b]]
+              (* (->int a) (->int b))))
+       (apply +)))
+
+(comment
+  (day-3-1)
+  (day-3-2)
+  ;
   )
 
 ;; ---------------------------------------------------------------------------
@@ -190,7 +211,6 @@
 (comment
   (day-4-1)
   (day-4-2)
-
   ;
   )
 
