@@ -20,6 +20,12 @@
 (defn ->int [s]
   (Integer/parseInt s))
 
+(defn remove-nth [n coll]
+  (keep-indexed (fn [idx item]
+                  (when (not= idx n)
+                    item))
+                coll))
+
 ;; ---------------------------------------------------------------------------
 ;; Day 1
 
@@ -51,11 +57,40 @@
 ;; Day 2
 
 (defn day-2-1 []
-  ; TODO
-  )
+  (let [safe? (fn [line]
+                (and (or (= line (sort line))
+                         (= (reverse line) (sort line)))
+                     (->> (partition 2 1 line)
+                          (every? (fn [[a b]]
+                                    (<= 1 (abs (- a b)) 3))))))]
+    (->> (read-input "2.1")
+         (map ->cols)
+         (map (partial map ->int))
+         (filter safe?)
+         (count))))
 
 (defn day-2-2 []
-  ; TODO
+  (let [safe? (fn [line]
+                (and (or (= line (sort line))
+                         (= (reverse line) (sort line)))
+                     (->> (partition 2 1 line)
+                          (every? (fn [[a b]]
+                                    (<= 1 (abs (- a b)) 3))))))
+        safe'? (fn [line]
+                 (let [permutations (for [i (range (count line))]
+                                      (remove-nth i line))]
+                   (some safe? permutations)))]
+
+    (->> (read-input "2.1")
+         (map ->cols)
+         (map (partial map ->int))
+         (filter safe'?)
+         (count))))
+
+(comment
+  (day-2-1)
+  (day-2-2)
+  ;
   )
 
 ;; ---------------------------------------------------------------------------
