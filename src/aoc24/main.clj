@@ -306,3 +306,118 @@
   (day-5-2)
   ;
   )
+
+;; ---------------------------------------------------------------------------
+;; Day 6
+
+(defn day-6-1 []
+  (let [grid (->grid (read-input "6.1"))
+        start-dir [0 -1]
+        start-pos (->> (for [x (range (count (first grid)))
+                             y (range (count grid))]
+                         (when (= "^" (get-in grid [y x]))
+                           [x y]))
+                       (find-first #(not (nil? %))))
+
+        rotate
+        (fn [dir]
+          (case dir
+            [0 -1] [1 0]
+            [1 0] [0 1]
+            [0 1] [-1 0]
+            [-1 0] [0 -1]))
+
+        move
+        (fn [[px py] [dx dy]]
+          [(+ px dx) (+ py dy)])
+
+        in-bounds?
+        (fn [[px py]]
+          (and (<= 0 px (dec (count (first grid))))
+               (<= 0 py (dec (count grid)))))
+
+        blocked?
+        (fn [p d]
+          (let [[dx dy] (move p d)]
+            (= "#" (get-in grid [dy dx]))))
+
+        visited
+        (loop [p start-pos
+               d start-dir
+               visited #{p}]
+          (cond
+            (not (in-bounds? p))
+            visited
+
+            (blocked? p d)
+            (recur (move p (rotate d))
+                   (rotate d)
+                   (conj visited p))
+
+            :else
+            (recur (move p d)
+                   d
+                   (conj visited p))))]
+
+    (count visited)))
+
+(defn day-6-2 []
+  (let [grid (->grid (read-input "6.1"))
+        start-dir [0 -1]
+        start-pos (->> (for [x (range (count (first grid)))
+                             y (range (count grid))]
+                         (when (= "^" (get-in grid [y x]))
+                           [x y]))
+                       (find-first #(not (nil? %))))]
+
+    (letfn [(rotate [dir]
+              (case dir
+                [0 -1] [1 0]
+                [1 0] [0 1]
+                [0 1] [-1 0]
+                [-1 0] [0 -1]))
+
+            (move [[px py] [dx dy]]
+              [(+ px dx) (+ py dy)])
+
+            (in-bounds? [g [px py]]
+              (and (<= 0 px (dec (count (first g))))
+                   (<= 0 py (dec (count g)))))
+
+            (blocked? [g p d]
+              (let [[dx dy] (move p d)]
+                (= "#" (get-in g [dy dx]))))
+
+            (place-obstacle [g [x y]]
+              (when-not (contains? #{"^" "#"} (get-in g [y x]))
+                (assoc-in g [y x] "#")))
+
+            (loops? [g]
+              (loop [p start-pos
+                     d start-dir
+                     visited #{}]
+                (cond
+                  (contains? visited [p d])
+                  true
+
+                  (not (in-bounds? g p))
+                  false
+
+                  (blocked? g p d)
+                  (recur p (rotate d) visited)
+
+                  :else
+                  (recur (move p d) d (conj visited [p d])))))]
+
+      (->> (for [x (range (count (first grid)))
+                 y (range (count grid))]
+             (when-let [grid' (place-obstacle grid [x y])]
+               (loops? grid')))
+           (filter true?)
+           (count)))))
+
+(comment
+  (day-6-1)
+  (time (day-6-2))
+  ;
+  )
