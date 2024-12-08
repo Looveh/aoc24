@@ -421,3 +421,77 @@
   (time (day-6-2))
   ;
   )
+
+;; ---------------------------------------------------------------------------
+;; Day 7
+
+(defn day-7-1 []
+  (letfn [(parse-line [line]
+            (let [[result right] (str/split line #": ")
+                  operands (->> (str/split right #"\s+")
+                                (map bigint))]
+              [(bigint result) operands]))
+
+          (calc [operands operators]
+            (loop [acc (first operands)
+                   operands' (rest operands)
+                   operators' operators]
+              (if (or (empty? operators') (empty? operands'))
+                acc
+                (let [operator (first operators')
+                      operand (first operands')]
+                  (recur (operator acc operand)
+                         (rest operands')
+                         (rest operators'))))))
+
+          (assess-line [[result operands]]
+            (let [operator-variants (combo/selections [+ *] (dec (count operands)))]
+              (->> operator-variants
+                   (map #(calc operands %))
+                   (find-first #(= % result)))))]
+
+    (->> (read-input "7.1")
+         (map parse-line)
+         (map assess-line)
+         (filter some?)
+         (apply +))))
+
+(defn day-7-2 []
+  (letfn [(parse-line [line]
+            (let [[result right] (str/split line #": ")
+                  operands (->> (str/split right #"\s+")
+                                (map bigint))]
+              [(bigint result) operands]))
+
+          (double-pipe [a b]
+            (bigint (str a b)))
+
+          (calc [operands operators]
+            (loop [acc (first operands)
+                   operands' (rest operands)
+                   operators' operators]
+              (if (or (empty? operators') (empty? operands'))
+                acc
+                (let [operator (first operators')
+                      operand (first operands')]
+                  (recur (operator acc operand)
+                         (rest operands')
+                         (rest operators'))))))
+
+          (assess-line [[result operands]]
+            (let [operator-variants (combo/selections [+ * double-pipe] (dec (count operands)))]
+              (->> operator-variants
+                   (map #(calc operands %))
+                   (find-first #(= % result)))))]
+
+    (->> (read-input "7.1")
+         (map parse-line)
+         (map assess-line)
+         (filter some?)
+         (apply +))))
+
+(comment
+  (day-7-1)
+  (day-7-2)
+  ;
+  )
