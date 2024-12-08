@@ -495,3 +495,80 @@
   (day-7-2)
   ;
   )
+
+;; ---------------------------------------------------------------------------
+;; Day 8
+
+(defn day-8-1 []
+  (let [grid (->grid (read-input "8.1"))]
+
+    (letfn [(aligned-antenna? [[x y] [dx dy]]
+              (let [a1 (get-in grid [(+ y dy) (+ x dx)])
+                    a2 (get-in grid [(+ y dy dy) (+ x dx dx)])]
+                (and a1 a2 (not= a1 ".") (= a1 a2) (not (= dx dy 0)))))
+
+            (antinode? [p]
+              (let [offsets (for [dx (range (- (count (first grid)))
+                                            (count (first grid)))
+                                  dy (range (- (count grid))
+                                            (count grid))]
+                              [dx dy])]
+                (->> offsets
+                     (find-first #(aligned-antenna? p %))
+                     (boolean))))]
+
+      (->> (for [x (range (count (first grid)))
+                 y (range (count grid))]
+             [x y])
+           (filter antinode?)
+           (count)))))
+
+(defn day-8-2 []
+  (let [grid (->grid (read-input "8.1"))]
+
+    (letfn [(aligned-antenna? [[x y] [dx dy]]
+              (cond
+                (and (= dx dy 0)
+                     (not= "." (get-in grid [y x])))
+                true
+
+                (= dx dy 0)
+                false
+
+                :else
+                (let [as (loop [acc []
+                                i 1]
+                           (let [a (get-in grid [(+ y (* i dy))
+                                                 (+ x (* i dx))])]
+                             (if a
+                               (recur (conj acc a) (inc i))
+                               acc)))]
+                  (->> as
+                       (filter #(not= "." %))
+                       (group-by identity)
+                       (vals)
+                       (filter #(<= 2 (count %)))
+                       (seq)
+                       (boolean)))))
+
+            (antinode? [p]
+              (let [offsets (for [dx (range (- (count (first grid)))
+                                            (count (first grid)))
+                                  dy (range (- (count grid))
+                                            (count grid))]
+                              [dx dy])]
+                (->> offsets
+                     (find-first #(aligned-antenna? p %))
+                     (boolean))))]
+
+      (->> (for [x (range (count (first grid)))
+                 y (range (count grid))]
+             [x y])
+           (filter antinode?)
+           (count)))))
+
+(comment
+  (day-8-1)
+  (day-8-2)
+  ;
+  )
