@@ -42,6 +42,46 @@
           [val]
           (drop idx coll)))
 
+(defn grid->graph [comparator grid]
+  (letfn [(edges [[x y]]
+            (->> [[-1 0] [1 0] [0 -1] [0 1]]
+                 (map (fn [[dx dy]] [(+ x dx) (+ y dy)]))
+                 (filter (fn [[x' y']]
+                           (and (>= x' 0)
+                                (< x' (count (first grid)))
+                                (>= y' 0)
+                                (< y' (count grid))
+                                (comparator (get-in grid [y x]) (get-in grid [y' x'])))))
+
+                 (set)))]
+    (reduce (fn [graph [x y]]
+              (assoc graph [x y] {:coord [x y]
+                                  :val (get-in grid [y x])
+                                  :edges (edges [x y])}))
+            (sorted-map)
+            (for [x (range (count (first grid)))
+                  y (range (count grid))]
+              [x y]))))
+
+(defn graph-paths [graph from to]
+  (let [queue (atom [[from]])
+        paths (atom [])]
+    (loop []
+      (if (empty? @queue)
+        @paths
+        (let [path (first @queue)
+              current (last path)]
+          (swap! queue rest)
+          (if (= current to)
+            (do
+              (swap! paths conj path)
+              (recur))
+            (do
+              (doseq [neighbor (get-in graph [current :edges])]
+                (when (not (some #{neighbor} path))
+                  (swap! queue conj (conj path neighbor))))
+              (recur))))))))
+
 ;; ---------------------------------------------------------------------------
 ;; Day 1
 
@@ -721,4 +761,44 @@
 ;
   )
 
+;; ---------------------------------------------------------------------------
+;; Day 10
 
+(defn day-10-1 []
+  (let [graph (->> (read-input "10.1")
+                   (->grid)
+                   (mapv (partial mapv #(when (not= "." %) (->int %))))
+                   (grid->graph (fn [a b]
+                                  (and a b (= a (dec b))))))]
+    (->> (for [zero (->> (vals graph)
+                         (filter #(= 0 (:val %)))
+                         (map :coord))
+               nine (->> (vals graph)
+                         (filter #(= 9 (:val %)))
+                         (map :coord))]
+           (graph-paths graph zero nine))
+         (filter seq)
+         (count))))
+
+(defn day-10-2 []
+  (let [graph (->> (read-input "10.1")
+                   (->grid)
+                   (mapv (partial mapv #(when (not= "." %) (->int %))))
+                   (grid->graph (fn [a b]
+                                  (and a b (= a (dec b))))))]
+    (->> (for [zero (->> (vals graph)
+                         (filter #(= 0 (:val %)))
+                         (map :coord))
+               nine (->> (vals graph)
+                         (filter #(= 9 (:val %)))
+                         (map :coord))]
+           (graph-paths graph zero nine))
+         (filter seq)
+         (map count)
+         (apply +))))
+
+(comment
+  (day-10-1)
+  (day-10-2)
+  ;
+  )
