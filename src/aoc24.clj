@@ -64,23 +64,21 @@
               [x y]))))
 
 (defn graph-paths [graph from to]
-  (let [queue (atom [[from]])
-        paths (atom [])]
-    (loop []
-      (if (empty? @queue)
-        @paths
-        (let [path (first @queue)
-              current (last path)]
-          (swap! queue rest)
-          (if (= current to)
-            (do
-              (swap! paths conj path)
-              (recur))
-            (do
-              (doseq [neighbor (get-in graph [current :edges])]
-                (when (not (some #{neighbor} path))
-                  (swap! queue conj (conj path neighbor))))
-              (recur))))))))
+  (loop [q [[from]]
+         ps []]
+    (if (empty? q)
+      ps
+      (let [[p & q'] q
+            n (last p)]
+        (if (= n to)
+          (recur q' (conj ps p))
+          (recur (reduce (fn [acc n']
+                           (if (some #(= n' %) p)
+                             acc
+                             (conj acc (conj p n'))))
+                         q'
+                         (get-in graph [n :edges]))
+                 ps))))))
 
 ;; ---------------------------------------------------------------------------
 ;; Day 1
