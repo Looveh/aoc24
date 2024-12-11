@@ -802,3 +802,67 @@
   (day-10-2)
   ;
   )
+
+;; ---------------------------------------------------------------------------
+;; Day 11
+
+(defn day-11-1 []
+  (let [input (->> (read-input "11.1")
+                   (first)
+                   (->cols))
+        morph (memoize
+               (fn [stone]
+                 (cond
+                   (= "0" stone)
+                   ["1"]
+
+                   (= 0 (mod (count stone) 2))
+                   (->> (split-at (/ (count stone) 2) stone)
+                        (map (partial apply str))
+                        (map ->int)
+                        (map str))
+
+                   :else
+                   [(str (* 2024 (->int stone)))])))
+        step (fn [stones & _]
+               (flatten (map morph stones)))]
+    (->> (reduce step input (range 25))
+         (count))))
+
+(def day-11-2_morph
+  (memoize
+   (fn [stone]
+     (cond
+       (= "0" stone)
+       ["1"]
+
+       (= 0 (mod (count stone) 2))
+       (->> (split-at (/ (count stone) 2) stone)
+            (map (partial apply str))
+            (map ->int)
+            (map str))
+
+       :else
+       [(str (* 2024 (->int stone)))]))))
+
+(def day-11-2_count
+  (memoize
+   (fn [depth stones]
+     (if (>= 0 depth)
+       1
+       (->> (mapcat day-11-2_morph stones)
+            (map #(day-11-2_count (dec depth) [%]))
+            (map bigint)
+            (apply +))))))
+
+(defn day-11-2 []
+  (->> (read-input "11.1")
+       (first)
+       (->cols)
+       (day-11-2_count 75)))
+
+(comment
+  (time (day-11-1))
+  (time (day-11-2))
+  ;
+  )
