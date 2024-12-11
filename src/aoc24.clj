@@ -1,4 +1,4 @@
-(ns aoc24.main
+(ns aoc24
   (:require [clojure.core.matrix :as cm]
             [clojure.math.combinatorics :as combo]
             [clojure.pprint :refer [pprint]]
@@ -9,7 +9,7 @@
 ;; Helpers
 
 (defn read-input [filename]
-  (-> (str "inputs/" filename ".txt")
+  (-> (str "inputs/2024/" filename ".txt")
       (slurp)
       (str/split-lines)))
 
