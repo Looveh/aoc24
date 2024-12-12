@@ -63,6 +63,20 @@
                   y (range (count grid))]
               [x y]))))
 
+(defn graph-path [graph from to]
+  (loop [q [[from]]
+         visited #{}]
+    (if (empty? q)
+      nil
+      (let [[p & q'] q
+            n (last p)]
+        (if (= n to)
+          p
+          (if (visited n)
+            (recur q' visited)
+            (recur (into q' (map #(conj p %) (get-in graph [n :edges])))
+                   (conj visited n))))))))
+
 (defn graph-paths [graph from to]
   (loop [q [[from]]
          ps []]
@@ -862,5 +876,63 @@
 (comment
   (time (day-11-1))
   (time (day-11-2))
+  ;
+  )
+
+;; ---------------------------------------------------------------------------
+;; Day 12
+
+(defn day-12-1 []
+  (let [graph (->> (read-input "12.1")
+                   (->grid)
+                   (grid->graph =))
+
+        proto-clusters
+        (->> graph
+             (vals)
+             (group-by :val)
+             (vals)
+             (map (fn [nodes]
+                    (reduce (fn [acc node]
+                              (assoc acc (:coord node) node))
+                            (sorted-map)
+                            nodes))))
+
+        clusters
+        (mapcat
+         (fn [graph]
+           (loop [clusters []
+                  [node & nodes] (vals graph)]
+             (if (not node)
+               clusters
+               (let [in-cluster?
+                     (find-first (fn [cluster]
+                                   (graph-path graph
+                                               (:coord node)
+                                               (->> cluster first :coord)))
+                                 clusters)]
+                 (if in-cluster?
+                   (recur (conj (remove #(= in-cluster? %) clusters)
+                                (conj in-cluster? node))
+                          nodes)
+                   (recur (conj clusters [node])
+                          nodes))))))
+         proto-clusters)
+
+        measure
+        (fn [cluster]
+          (let [area (count cluster)
+                perimeter (->> cluster
+                               (map #(- 4 (count (:edges %))))
+                               (apply +))]
+            (* area perimeter)))]
+
+    (->> clusters
+         (map measure)
+         (apply +))))
+
+(comment
+  (time (day-12-1))
+
   ;
   )
