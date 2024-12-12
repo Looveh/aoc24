@@ -931,8 +931,106 @@
          (map measure)
          (apply +))))
 
+(defn day-12-2 []
+
+  ; please don't look
+
+  (let [graph (->> (read-input "12.1")
+                   (->grid)
+                   (grid->graph =))
+
+        proto-clusters
+        (->> graph
+             (vals)
+             (group-by :val)
+             (vals)
+             (map (fn [nodes]
+                    (reduce (fn [acc node]
+                              (assoc acc (:coord node) node))
+                            (sorted-map)
+                            nodes))))
+
+        clusters
+        (mapcat
+         (fn [graph]
+           (loop [clusters []
+                  [node & nodes] (vals graph)]
+             (if (not node)
+               clusters
+               (let [in-cluster?
+                     (find-first (fn [cluster]
+                                   (graph-path graph
+                                               (:coord node)
+                                               (->> cluster first :coord)))
+                                 clusters)]
+                 (if in-cluster?
+                   (recur (conj (remove #(= in-cluster? %) clusters)
+                                (conj in-cluster? node))
+                          nodes)
+                   (recur (conj clusters [node])
+                          nodes))))))
+         proto-clusters)
+
+        peripheral-edges
+        (fn [{:keys [coord edges]}]
+          (let [[x y] coord]
+            (->> (for [[dx dy] [[-1 0] [1 0] [0 -1] [0 1]]
+                       :let [x' (+ x dx)
+                             y' (+ y dy)]]
+                   (when-not (contains? edges [x' y'])
+                     [[x y] [x' y']]))
+                 (filter some?))))
+
+        nodes-adjacent?
+        (fn [[x y] [x' y']]
+          (or (and (= x x') (= 1 (abs (- y y'))))
+              (and (= y y') (= 1 (abs (- x x'))))))
+
+        edges-adjacent?
+        (fn [[f t] [f' t']]
+          (and (nodes-adjacent? f f')
+               (nodes-adjacent? t t')))
+
+        with-peripheral-edges
+        (fn [cluster]
+          (map (fn [node]
+                 (assoc node :peripheral-edges (peripheral-edges node)))
+               cluster))
+
+        cluster-sides
+        (fn [edges]
+          (loop [[edge & edges'] edges
+                 clusters #{}]
+            (if (not edge)
+              clusters
+              (let [matching-cluster
+                    (find-first (fn [cluster]
+                                  (some #(edges-adjacent? % edge) cluster))
+                                clusters)]
+                (if matching-cluster
+                  (recur edges' (conj (remove #(= matching-cluster %) clusters)
+                                      (conj matching-cluster edge)))
+                  (recur edges' (conj clusters [edge])))))))
+
+        sides
+        (fn [cluster]
+          (->> cluster
+               (mapcat :peripheral-edges)
+               (cluster-sides)
+               (count)))
+
+        measure
+        (fn [cluster]
+          (let [area (count cluster)]
+            (* area (sides cluster))))]
+
+    (->> clusters
+         (map with-peripheral-edges)
+         (map measure)
+         (apply +))))
+
 (comment
   (time (day-12-1))
-
+  (time (day-12-2))
   ;
   )
