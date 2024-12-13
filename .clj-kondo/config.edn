@@ -1,0 +1,3 @@
+{:lint-as
+ {clojure.core.logic/run* clojure.core/fn
+  clojure.core.logic/fresh clojure.core/fn}}

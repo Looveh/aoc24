@@ -1,5 +1,7 @@
 (ns aoc24
-  (:require [clojure.core.matrix :as cm]
+  (:require [clojure.core.logic :as cl]
+            [clojure.core.logic.fd :as clfd]
+            [clojure.core.matrix :as cm]
             [clojure.math.combinatorics :as combo]
             [clojure.pprint :refer [pprint]]
             [clojure.set :as set]
@@ -21,6 +23,9 @@
 
 (defn ->int [s]
   (Integer/parseInt s))
+
+(defn sum [coll]
+  (apply + (filter number? coll)))
 
 (defn remove-nth [n coll]
   (keep-indexed (fn [idx item]
@@ -1032,5 +1037,76 @@
 (comment
   (time (day-12-1))
   (time (day-12-2))
+  ;
+  )
+
+;; ---------------------------------------------------------------------------
+;; Day 13
+
+(defn day-13-1 []
+
+  ; I didn't come here to do maths on paper
+
+  (letfn [(parse [lines]
+            (for [[l1 l2 l3 _] (partition 4 lines)]
+              (let [[_ ax ay] (re-matches #"Button A: X\+(\d+), Y\+(\d+)" l1)
+                    [_ bx by] (re-matches #"Button B: X\+(\d+), Y\+(\d+)" l2)
+                    [_ tx ty] (re-matches #"Prize: X=(\d+), Y=(\d+)" l3)]
+                (mapv ->int [ax ay bx by tx ty]))))
+
+          (solve [[ax ay bx by tx ty]]
+            (cl/run* [q]
+              (cl/fresh [an bn]
+                (clfd/in an (clfd/interval 0 100))
+                (clfd/in bn (clfd/interval 0 100))
+                (clfd/eq (= tx (+ (* an ax) (* bn bx)))
+                         (= ty (+ (* an ay) (* bn by))))
+                (cl/== q [an bn]))))
+
+          (cheapest-solution [vars]
+            (->> (solve vars)
+                 (map (fn [[a b]] (+ (* a 3) b)))
+                 (sort)
+                 (first)))]
+
+    (->> (read-input "13.1")
+         (parse)
+         (map cheapest-solution)
+         (sum))))
+
+(defn day-13-2 []
+
+  ; I came here to have machines do math for me
+
+  (letfn [(parse [lines]
+            (for [[l1 l2 l3 _] (partition-all 4 lines)]
+              (let [[_ ax ay] (re-matches #"Button A: X\+(\d+), Y\+(\d+)" l1)
+                    [_ bx by] (re-matches #"Button B: X\+(\d+), Y\+(\d+)" l2)
+                    [_ tx ty] (re-matches #"Prize: X=(\d+), Y=(\d+)" l3)]
+                (mapv ->int [ax ay bx by tx ty]))))
+
+          (solve [[ax ay bx by tx ty]]
+            (cl/run* [q]
+              (cl/fresh [an bn]
+                (clfd/in an (clfd/interval 0 20000000000000))
+                (clfd/in bn (clfd/interval 0 20000000000000))
+                (clfd/eq (= (+ tx 10000000000000) (+ (* an ax) (* bn bx)))
+                         (= (+ ty 10000000000000) (+ (* an ay) (* bn by))))
+                (cl/== q [an bn]))))
+
+          (cheapest-solution [vars]
+            (->> (solve vars)
+                 (map (fn [[a b]] (+ (* a 3) b)))
+                 (sort)
+                 (first)))]
+
+    (->> (read-input "13.1")
+         (parse)
+         (map cheapest-solution)
+         (sum))))
+
+(comment
+  (time (day-13-1))
+  (time (day-13-2))
   ;
   )
