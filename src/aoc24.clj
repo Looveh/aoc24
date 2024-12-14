@@ -1110,3 +1110,90 @@
   (time (day-13-2))
   ;
   )
+
+;; ---------------------------------------------------------------------------
+;; Day 14
+
+(defn day-14-1 []
+  (let [[file width height] ["14.1" 101 103] #_["14.1.x" 11 7]]
+    (letfn [(parse [line]
+              (let [[_ x y dx dy] (re-matches #"p=(\d+),(\d+) v=(-?\d+),(-?\d+)" line)]
+                (mapv ->int [x y dx dy])))
+
+            (move [[x y dx dy] steps]
+              [(mod (+ x (* steps dx)) width)
+               (mod (+ y (* steps dy)) height)
+               dx
+               dy])
+
+            (quadrant [[x y _ _]]
+              (let [[w h] [(int (/ width 2)) (int (/ height 2))]]
+                (cond
+                  (and (> x w) (> y h)) 1
+                  (and (< x w) (> y h)) 2
+                  (and (< x w) (< y h)) 3
+                  (and (> x w) (< y h)) 4)))]
+
+      (->> (read-input file)
+           (map parse)
+           (map #(move % 100))
+           (group-by quadrant)
+           (#(dissoc % nil))
+           (vals)
+           (map count)
+           (apply *)))))
+
+(defn day-14-2 []
+  (let [[file width height] ["14.1" 101 103]]
+    (letfn [(parse [line]
+              (let [[_ x y dx dy] (re-matches #"p=(\d+),(\d+) v=(-?\d+),(-?\d+)" line)]
+                (mapv ->int [x y dx dy])))
+
+            (move [[x y dx dy]]
+              [(mod (+ x dx) width)
+               (mod (+ y dy) height)
+               dx
+               dy])
+
+            (adjacents [coords]
+              (let [coords' (set coords)]
+                (filter (fn [[x y]]
+                          (some (fn [[dx dy]]
+                                  (contains? coords' [(+ x dx) (+ y dy)]))
+                                [[1 0] [-1 0] [0 1] [0 -1] [1 1] [1 -1] [-1 1] [-1 -1]]))
+                        coords)))
+
+            (print-space [robots]
+              (->> (for [y (range height)]
+                     (for [x (range width)]
+                       (let [n (->> robots
+                                    (filter (fn [[x' y' _ _]]
+                                              (and (= x x') (= y y'))))
+                                    (count))]
+                         (if (< 0 n)
+                           "X"
+                           "."))))
+                   (map str/join)
+                   (str/join "\n")))
+
+            (dump-space [idx robots]
+              (spit "dump.txt" (str ":: " idx " ::\n"
+                                    (print-space robots)
+                                    "\n\n\n") :append true))]
+
+      (loop [idx 0
+             robots (map parse (read-input file))]
+        (when (< idx 50000)
+          (when (< 300 (->> robots
+                            (map (fn [[x y _ _]] [x y]))
+                            (adjacents)
+                            (count)))
+            (dump-space idx robots))
+          (recur (inc idx)
+                 (map move robots)))))))
+
+(comment
+  (time (day-14-1))
+  (time (day-14-2))
+  ;
+  )
