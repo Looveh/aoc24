@@ -1197,3 +1197,73 @@
   (time (day-14-2))
   ;
   )
+
+;; ---------------------------------------------------------------------------
+;; Day 15
+
+(defn day-15-1 []
+  (letfn [(parse [input]
+            (let [[left right] (str/split (str/join "\n" input) #"\n\n")
+                  grid (->grid (str/split left #"\n"))
+                  moves (->> (str/split right #"")
+                             (map (fn [c]
+                                    (case c
+                                      "<" [-1 0]
+                                      ">" [1 0]
+                                      "v" [0 1]
+                                      "^" [0 -1]
+                                      nil)))
+                             (filter some?))]
+              [grid moves]))
+
+          (at-pos [grid [x y]]
+            (get-in grid [y x]))
+
+          (set-pos [grid [x y] val]
+            (assoc-in grid [y x] val))
+
+          (vec+ [[x y] [x' y']]
+            [(+ x x') (+ y y')])
+
+          (player-pos [grid]
+            (->> (for [y (range (count grid))
+                       x (range (count (first grid)))]
+                   (when (= "@" (at-pos grid [x y]))
+                     [x y]))
+                 (filter some?)
+                 (first)))
+
+          (move [grid pos dir]
+            (let [next (at-pos grid (vec+ pos dir))]
+              (case next
+                "." [true (-> grid
+                              (set-pos (vec+ pos dir) (at-pos grid pos))
+                              (set-pos pos "."))]
+                "O" (let [[did-move grid'] (move grid (vec+ pos dir) dir)]
+                      (if did-move
+                        [true (-> grid'
+                                  (set-pos (vec+ pos dir) (at-pos grid pos))
+                                  (set-pos pos "."))]
+                        [false grid]))
+
+                [false grid])))
+
+          (compress [grid]
+            (->> (for [y (range (count grid))
+                       x (range (count (first grid)))]
+                   (when (= "O" (at-pos grid [x y]))
+                     (+ x (* y 100))))
+                 (sum)))]
+
+    (let [[grid' moves'] (parse (read-input "15.1"))]
+      (loop [grid grid'
+             [dir & moves] moves']
+        (if-not dir
+          (compress grid)
+          (recur (second (move grid (player-pos grid) dir))
+                 moves))))))
+
+(comment
+  (day-15-1)
+  ;
+  )
