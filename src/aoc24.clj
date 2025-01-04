@@ -99,6 +99,15 @@
                          (get-in graph [n :edges]))
                  ps))))))
 
+(defn at-pos [grid [x y]]
+  (get-in grid [y x]))
+
+(defn vec+ [[x y] [x' y']]
+  [(+ x x') (+ y y')])
+
+(defn flatten-1 [coll]
+  (mapcat identity coll))
+
 ;; ---------------------------------------------------------------------------
 ;; Day 1
 
@@ -1216,14 +1225,8 @@
                              (filter some?))]
               [grid moves]))
 
-          (at-pos [grid [x y]]
-            (get-in grid [y x]))
-
           (set-pos [grid [x y] val]
             (assoc-in grid [y x] val))
-
-          (vec+ [[x y] [x' y']]
-            [(+ x x') (+ y y')])
 
           (player-pos [grid]
             (->> (for [y (range (count grid))
@@ -1263,7 +1266,102 @@
           (recur (second (move grid (player-pos grid) dir))
                  moves))))))
 
+(defn day-15-2 []
+  (let [input (read-input "15.1")
+        [left right] (str/split (str/join "\n" input) #"\n\n")
+        grid (->grid (str/split left #"\n"))
+
+        moves
+        (->> (str/split right #"")
+             (map (fn [c]
+                    (case c
+                      "<" [-1 0]
+                      ">" [1 0]
+                      "v" [0 1]
+                      "^" [0 -1]
+                      nil)))
+             (filter some?))
+
+        boxes
+        (->> (for [y (range (count grid))
+                   x (range (count (first grid)))]
+               (when (= "O" (at-pos grid [x y]))
+                 [[(* x 2) y] [(inc (* x 2)) y]]))
+             (filter some?)
+             (set))
+
+        walls
+        (->> (for [y (range (count grid))
+                   x (range (count (first grid)))]
+               (when (= "#" (at-pos grid [x y]))
+                 [[(* x 2) y] [(inc (* x 2)) y]]))
+             (filter some?)
+             (flatten-1)
+             (set))
+
+        start-pos
+        (->> (for [y (range (count grid))
+                   x (range (count (first grid)))]
+               (when (= "@" (at-pos grid [x y]))
+                 [(* x 2) y]))
+             (filter some?)
+             first)
+
+        box-at
+        (fn [boxes pos]
+          (find-first (fn [[a b]] (or (= pos a) (= pos b))) boxes))
+
+        boxes-to
+        (fn [boxes pos dir]
+          (loop [boxes' boxes
+                 poss #{pos}
+                 found #{}]
+            (if (empty? poss)
+              found
+              (let [next (vec+ (first poss) dir)
+                    box (box-at boxes' next)]
+                (if box
+                  (recur (disj boxes' box)
+                         (conj (rest poss) (first box) (second box))
+                         (conj found box))
+                  (recur boxes' (rest poss) found))))))
+
+        will-bump-wall?
+        (fn [boxes ppos dir]
+          (or (contains? walls (vec+ ppos dir))
+              (some (fn [[b1 b2]]
+                      (or (contains? walls (vec+ b1 dir))
+                          (contains? walls (vec+ b2 dir))))
+                    boxes)))
+
+        move-boxes
+        (fn [all-boxes boxes-to-move dir]
+          (set/union (set/difference all-boxes boxes-to-move)
+                     (set (map (fn [[b1 b2]]
+                                 [(vec+ b1 dir) (vec+ b2 dir)])
+                               boxes-to-move))))
+        end-state
+        (loop [[move & moves'] moves
+               ppos' start-pos
+               boxes' boxes]
+          (if (nil? move)
+            [ppos' boxes']
+            (let [boxes-to-push (boxes-to boxes' ppos' move)]
+              (if (will-bump-wall? boxes-to-push ppos' move)
+                (recur moves' ppos' boxes')
+                (recur moves' (vec+ ppos' move) (move-boxes boxes' boxes-to-push move))))))
+
+        box-dist-to-edge
+        (fn [[[x y] _]]
+          (+ (* 100 y) x))]
+
+    (->> end-state
+         second
+         (map box-dist-to-edge)
+         (sum))))
+
 (comment
   (day-15-1)
+  (day-15-2)
   ;
   )
