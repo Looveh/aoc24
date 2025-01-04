@@ -5,15 +5,18 @@
             [clojure.math.combinatorics :as combo]
             [clojure.pprint :refer [pprint]]
             [clojure.set :as set]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [grid :as grid]
+            [graph :as graph]))
 
 ;; ---------------------------------------------------------------------------
 ;; Helpers
 
+(defn slurp-input [filename]
+  (slurp (str "inputs/2024/" filename ".txt")))
+
 (defn read-input [filename]
-  (-> (str "inputs/2024/" filename ".txt")
-      (slurp)
-      (str/split-lines)))
+  (str/split-lines (slurp-input filename)))
 
 (defn ->cols [line]
   (str/split line #"\s+"))
@@ -1363,5 +1366,102 @@
 (comment
   (day-15-1)
   (day-15-2)
+  ;
+  )
+
+;; ---------------------------------------------------------------------------
+;; Day 16
+
+(defn day-16_maze->graph [grid]
+  (let [width (grid/width grid)
+        height (grid/height grid)
+
+        ;; Find start position and create initial graph node with east direction
+        start-pos
+        (->> (for [y (range height)
+                   x (range width)
+                   :when (= "S" (grid/at grid [x y]))]
+               [x y])
+             first)
+
+        end-pos
+        (->> (for [y (range height)
+                   x (range width)
+                   :when (= "E" (grid/at grid [x y]))]
+               [x y])
+             first)
+
+        ;; Helper to check if position is walkable
+        walkable?
+        (fn [pos]
+          (and (grid/in-bounds? grid pos)
+               (not= "#" (grid/at grid pos))))
+
+        ;; Calculate rotation cost between two directions
+        rotation-cost
+        (fn [from-dir to-dir]
+          (cond
+            (= from-dir to-dir) 0
+            (or (and (#{:n :s} from-dir) (#{:e :w} to-dir))
+                (and (#{:e :w} from-dir) (#{:n :s} to-dir))) 1000
+            :else 2000))
+
+        build-graph
+        (fn []
+          (let [coords (for [y (range height)
+                             x (range width)
+                             :when (not= "#" (grid/at grid [x y]))]
+                         [x y])
+                nodes (mapcat (fn [[x y]]
+                                [[[x y] :n]
+                                 [[x y] :s]
+                                 [[x y] :e]
+                                 [[x y] :w]])
+                              coords)]
+            (reduce
+             (fn [graph [from from-dir :as node]]
+               (let [edges (->> (grid/neighbors grid from)
+                                (filter walkable?)
+                                (map (fn [to]
+                                       (let [to-dir (grid/direction from to)]
+                                         {[to to-dir] (+ 1 (rotation-cost from-dir to-dir))})))
+                                (apply merge))]
+                 (assoc graph node edges)))
+             {}
+             nodes)))]
+
+    [(build-graph) start-pos end-pos]))
+
+(defn day-16-1 []
+  (let [maze (grid/str-> (slurp-input "16.1"))
+        [graph start-pos end-pos] (day-16_maze->graph maze)
+        a (time (first (graph/find-cheapest-path graph [start-pos :e] [end-pos :n])))
+        b (time (first (graph/find-cheapest-path graph [start-pos :e] [end-pos :s])))
+        c (time (first (graph/find-cheapest-path graph [start-pos :e] [end-pos :w])))
+        d (time (first (graph/find-cheapest-path graph [start-pos :e] [end-pos :e])))]
+    (->> [a b c d]
+         (filter some?)
+         (sort-by first)
+         (first))))
+
+(defn day-16-2 []
+  (let [maze (grid/str-> (slurp-input "16.1"))
+        [graph start-pos end-pos] (day-16_maze->graph maze)
+        a (time (graph/find-all-cheapest-paths graph [start-pos :e] [end-pos :n]))
+        b (time (graph/find-all-cheapest-paths graph [start-pos :e] [end-pos :s]))
+        c (time (graph/find-all-cheapest-paths graph [start-pos :e] [end-pos :w]))
+        d (time (graph/find-all-cheapest-paths graph [start-pos :e] [end-pos :e]))]
+    (->> [a b c d]
+         (filter some?)
+         (sort-by ffirst)
+         (first)
+         (mapcat second)
+         (map first)
+         (set)
+         (count))))
+
+(comment
+  (time (day-16-1))
+  (time (day-16-2))
   ;
   )
