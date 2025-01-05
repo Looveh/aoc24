@@ -28,6 +28,9 @@
 (defn at [grid [x y]]
   (get-in grid [y x]))
 
+(defn set [grid [x y] value]
+  (assoc-in grid [y x] value))
+
 (defn in-bounds? [grid [x y]]
   (and (<= 0 x (dec (width grid)))
        (<= 0 y (dec (height grid)))))
