@@ -31,6 +31,12 @@
 (defn set [grid [x y] value]
   (assoc-in grid [y x] value))
 
+(defn pos-of [grid v]
+  (first (for [y (range (height grid))
+               x (range (width grid))
+               :when (= v (at grid [x y]))]
+           [x y])))
+
 (defn in-bounds? [grid [x y]]
   (and (<= 0 x (dec (width grid)))
        (<= 0 y (dec (height grid)))))
