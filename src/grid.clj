@@ -1,5 +1,7 @@
 (ns grid
-  (:require [clojure.string :as str]))
+  (:require
+   [clojure.string :as str]
+   [clojure.test :refer [is]]))
 
 (def directions
   {:n [0 -1]
@@ -12,6 +14,9 @@
    [0 1] :s
    [-1 0] :w
    [1 0] :e})
+
+(defn vec+ [[x y] [x' y']]
+  [(+ x x') (+ y y')])
 
 (defn str-> [str]
   (vec (mapv #(str/split % #"") (str/split-lines str))))
@@ -28,7 +33,7 @@
 (defn at [grid [x y]]
   (get-in grid [y x]))
 
-(defn set [grid [x y] value]
+(defn put [grid [x y] value]
   (assoc-in grid [y x] value))
 
 (defn pos-of [grid v]
@@ -51,3 +56,107 @@
   (let [dx (- x' x)
         dy (- y' y)]
     (get directions' [dx dy])))
+
+(defn manhattan-distance [[x1 y1] [x2 y2]]
+  (+ (abs (- x2 x1))
+     (abs (- y2 y1))))
+
+(defn shortest-path-bfs
+  {:test
+   (fn []
+     (let [grid [["." "." "#"]
+                 ["." "." "."]
+                 ["#" "." "."]]
+           exp [[0 0] [0 1] [1 1] [2 1]]
+           res (shortest-path-bfs grid [0 0] [2 1])]
+       (is (= exp res)))
+     (let [grid [["." "#" "."]
+                 ["." "#" "."]
+                 ["." "." "."]]
+           can-walk? #(not= "#" (get-in % [:next :val]))
+           exp [[0 0] [0 1] [0 2] [1 2] [2 2] [2 1] [2 0]]
+           res (shortest-path-bfs grid [0 0] [2 0] can-walk?)]
+       (is (= exp res)))
+     (let [grid [["." "#" "."]
+                 ["." "#" "."]
+                 ["." "." "."]]
+           can-walk? #(not= "#" (get-in % [:next :val]))
+           res (shortest-path-bfs grid [0 0] [2 0] can-walk? 6)]
+       (is (= nil res)))
+     (let [grid [["." "#" "."]
+                 ["." "#" "."]
+                 ["." "." "."]]
+           can-walk? #(not= "#" (get-in % [:next :val]))
+           exp [[0 0] [0 1] :a :b]
+           res (shortest-path-bfs
+                grid [0 0] [2 0] can-walk? nil
+                (fn [{:keys [curr]}]
+                  (when (= [0 1] (:coord curr))
+                    [:a :b])))]
+       (is (= exp res)))
+     (let [grid [["." "#" "."]
+                 ["#" "." "#"]
+                 ["." "#" "."]]
+           can-walk? #(not= "#" (get-in % [:next :val]))
+           res (shortest-path-bfs grid [0 0] [2 2] can-walk?)]
+       (is (nil? res))))}
+  ([grid from to]
+   (shortest-path-bfs grid from to (constantly true)))
+  ([grid from to can-walk?]
+   (shortest-path-bfs grid from to can-walk? nil))
+  ([grid from to can-walk? max-length]
+   (shortest-path-bfs grid from to can-walk? max-length (constantly nil)))
+  ([grid from to can-walk? max-length finish-early?]
+   (loop [queue (conj clojure.lang.PersistentQueue/EMPTY [from])
+          visited #{from}]
+     (when-let [path (peek queue)]
+       (let [curr (last path)]
+         (if (= curr to)
+           path
+           (if (and max-length (>= (count path) max-length))
+             (recur (pop queue) visited)
+             (let [next-positions
+                   (->> (neighbors grid curr)
+                        (remove visited)
+                        (filter (fn [next-pos]
+                                  (let [prev (if (> (count path) 1)
+                                               (nth path (- (count path) 2))
+                                               nil)
+                                        prev-cell (when prev
+                                                    {:coord prev
+                                                     :val (at grid prev)})
+                                        curr-cell {:coord curr
+                                                   :val (at grid curr)}
+                                        next-cell {:coord next-pos
+                                                   :val (at grid next-pos)}]
+                                    (can-walk? {:grid grid
+                                                :prev prev-cell
+                                                :curr curr-cell
+                                                :next next-cell
+                                                :path path})))))]
+               (if-let [early-result (finish-early? curr to)]
+                 (into path early-result)
+                 (recur (into (pop queue)
+                              (map #(conj path %) next-positions))
+                        (into visited next-positions)))))))))))
+
+(defn walkable-paths [grid from can-step?]
+  (loop [queue (conj clojure.lang.PersistentQueue/EMPTY [from [from]])
+         paths {}
+         visited #{from}]
+    (if-let [[curr path] (peek queue)]
+      (let [neighbors (neighbors grid curr)
+            next-positions (->> neighbors
+                                (remove visited)
+                                (filter can-step?))
+            next-paths (map #(vector % (conj path %)) next-positions)
+            new-visited (reduce conj visited (map first next-paths))
+            new-paths (reduce (fn [m [pos p]]
+                                (assoc m pos p))
+                              paths
+                              next-paths)]
+        (recur (into (pop queue) next-paths)
+               new-paths
+               new-visited))
+      paths)))
+
