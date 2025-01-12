@@ -18,6 +18,9 @@
 (defn vec+ [[x y] [x' y']]
   [(+ x x') (+ y y')])
 
+(defn vec- [[x y] [x' y']]
+  [(- x x') (- y y')])
+
 (defn str-> [str]
   (vec (mapv #(str/split % #"") (str/split-lines str))))
 
@@ -160,3 +163,40 @@
                new-visited))
       paths)))
 
+(defn all-paths
+  {:test (fn []
+           (let [can-step? (fn [grid] #(not= "#" (at grid %)))]
+             ;; Test simple 2x2 grid
+             (let [grid [["A" "B"]
+                         ["C" "D"]]
+                   exp #{[[0 0] [0 1] [1 1]]
+                         [[0 0] [1 0] [1 1]]}
+                   res (all-paths grid [0 0] [1 1])]
+               (is (= exp res)))
+             (let [grid [["S" "." "."]
+                         ["#" "#" "."]
+                         ["." "." "E"]]
+                   exp #{[[0 0] [1 0] [2 0] [2 1] [2 2]]}
+                   res (all-paths grid [0 0] [2 2] (can-step? grid))]
+               (is (= exp res)))
+             (let [grid [["A" "#"]
+                         ["#" "B"]]
+                   exp #{}
+                   res (all-paths grid [0 0] [1 1] (can-step? grid))]
+               (is (= exp res)))))}
+  ([grid from to]
+   (all-paths grid from to (constantly true)))
+  ([grid from to can-step?]
+   (loop [queue (conj clojure.lang.PersistentQueue/EMPTY [from])
+          paths #{}]
+     (if-let [path (peek queue)]
+       (let [curr (last path)]
+         (if (= curr to)
+           (recur (pop queue) (conj paths path))
+           (let [next-positions (->> (neighbors grid curr)
+                                     (remove (set path))
+                                     (filter can-step?))]
+             (recur (into (pop queue)
+                          (map #(conj path %) next-positions))
+                    paths))))
+       paths))))
