@@ -4,7 +4,7 @@
 (def input
   #_[1 10 100 2024]
   #_[1 2 3 2024]
-  (map std/->long (std/read-input "22")))
+  (map std/->long (std/read-input 2024 22)))
 
 (defn calc-secret-number [sn]
   (let [sn (bit-xor sn (bit-shift-left sn 6))

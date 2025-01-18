@@ -5,4 +5,5 @@
 .lsp
 .portal
 .nrepl-port
+env.edn
 inputs/
