@@ -42,10 +42,10 @@
 (defn find-first [f coll]
   (first (filter f coll)))
 
-(defn largest-complete-subgraph
+(defn largest-clique
   "Using Bron-Kerbosh.
 
-   Expects directed graph of shape {:node #{:edge-1 :edge-2}}"
+   Expects graph of shape {:node-1 #{:node-2} :node-2 #{:node-1}"
   [graph]
   (loop [stack (list [(set (keys graph)) #{} #{} #{}])
          result #{}]

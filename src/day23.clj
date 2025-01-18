@@ -46,7 +46,7 @@
   (count (interconnected-threes)))
 
 (defn pt2 []
-  (let [subgraph (std/largest-complete-subgraph graph)]
+  (let [subgraph (std/largest-clique graph)]
     (str/join "," (sort subgraph))))
 
 (println :pt1 (time (pt1)))
