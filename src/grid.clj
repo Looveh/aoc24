@@ -27,6 +27,7 @@
   (width [this])
   (height [this])
   (rows [this])
+  (cols [this])
   (at [this pos])
   (set-val [this pos value])
   (in-bounds? [this pos])
@@ -44,9 +45,18 @@
 
 (defrecord Grid [grid]
   IGrid
-  (width [_] (count (first grid)))
-  (height [_] (count grid))
-  (rows [_] grid)
+
+  (width [_]
+    (count (first grid)))
+
+  (height [_]
+    (count grid))
+
+  (rows [_]
+    grid)
+
+  (cols [_]
+    (apply mapv vector grid))
 
   (in-bounds? [this [x y]]
     (and (<= 0 x (dec (.width this)))
