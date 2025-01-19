@@ -1,18 +1,14 @@
-(ns day17
-  (:require
-   [clojure.string :as str]
-   [std :refer [->long read-input]]))
-
-(def input-file
-  "17.1")
+(ns y24.d17
+  (:require [clojure.string :as str]
+            [std :as std]))
 
 (defn read-init-state []
-  (let [lines (read-input input-file)]
-    {:program (mapv ->long (re-seq #"\d+" (nth lines 4)))
+  (let [lines (std/read-input 2024 17)]
+    {:program (mapv std/->long (re-seq #"\d+" (nth lines 4)))
      :output []
-     :r {:a (->long (first (re-find #"(\d+)" (nth lines 0))))
-         :b (->long (first (re-find #"(\d+)" (nth lines 1))))
-         :c (->long (first (re-find #"(\d+)" (nth lines 2))))}
+     :r {:a (std/->long (first (re-find #"(\d+)" (nth lines 0))))
+         :b (std/->long (first (re-find #"(\d+)" (nth lines 1))))
+         :c (std/->long (first (re-find #"(\d+)" (nth lines 2))))}
      :pc 0}))
 
 (defn step [state]
@@ -121,9 +117,7 @@
                      a))))]
     (first (sort quine-seeds))))
 
-(comment
-  (time (pt1))
-  (time (pt2))
-  ;
-  )
+(println :pt1 (time (pt1)))
+(println :pt2 (time (pt2)))
+
 

@@ -1,19 +1,21 @@
-(ns day21
-  (:require [grid :as grid]
-            [std :as std]))
+(ns y24.d21
+  (:require [std :as std]
+            [grid :as grid]))
 
 (def input
-  (std/read-input "21"))
+  (std/read-input 2024 21))
 
 (def numpad
-  [["7" "8" "9"]
-   ["4" "5" "6"]
-   ["1" "2" "3"]
-   [nil "0" "A"]])
+  (grid/->Grid
+   [["7" "8" "9"]
+    ["4" "5" "6"]
+    ["1" "2" "3"]
+    [nil "0" "A"]]))
 
 (def keypad
-  [[nil "^" "A"]
-   ["<" "v" ">"]])
+  (grid/->Grid
+   [[nil "^" "A"]
+    ["<" "v" ">"]]))
 
 (def directions
   {[0 -1] "^"
@@ -25,7 +27,7 @@
   (for [i (range (dec (count path)))
         :let [from (nth path i)
               to (nth path (inc i))]]
-    (directions (grid/vec- to from))))
+    (directions (std/vec- to from))))
 
 (def paths-between
   (memoize

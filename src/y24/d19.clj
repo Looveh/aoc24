@@ -1,7 +1,6 @@
-(ns day19
-  (:require
-   [clojure.string :as s]
-   [std :refer [read-input]]))
+(ns y24.d19
+  (:require [clojure.string :as s]
+            [std :as std]))
 
 (def towel-arrangement-count
   (memoize
@@ -16,7 +15,7 @@
          (reduce + sub-design-counts))))))
 
 (defn parse-input []
-  (let [lines (read-input "19.1")
+  (let [lines (std/read-input 2024 19)
         towels (s/split (first lines) #", ")
         designs (drop 2 lines)]
     [towels designs]))
@@ -33,10 +32,6 @@
          (map #(towel-arrangement-count % towels))
          (reduce +))))
 
-(comment
-  (time (pt1))
-  (time (pt2))
-  ;
-  )
-
+(println :pt1 (time (pt1)))
+(println :pt2 (time (pt2)))
 

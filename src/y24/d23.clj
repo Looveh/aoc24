@@ -1,4 +1,4 @@
-(ns day23
+(ns y24.d23
   (:require [clojure.string :as str]
             [std :as std]))
 

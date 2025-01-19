@@ -1,7 +1,6 @@
-(ns day24
-  (:require
-   [clojure.string :as str]
-   [std :as std]))
+(ns y24.d24
+  (:require [clojure.string :as str]
+            [std :as std]))
 
 (def input
   (std/read-input 2024 24))

@@ -1,13 +1,10 @@
-(ns day20
-  (:require [std :refer [slurp-input]]
+(ns y24.d20
+  (:require [std :as std]
             [grid :as grid]))
 
-(def grid (grid/str-> (slurp-input "20.1")))
+(def grid (std/read-grid 2024 20))
 (def start (grid/pos-of grid "S"))
 (def end (grid/pos-of grid "E"))
-
-(println :start start)
-(println :end end)
 
 (def cache
   (atom {[start start] 0
@@ -17,9 +14,9 @@
   (not (= "#" (grid/at grid coord))))
 
 (def start->end
-  (grid/shortest-path-bfs grid start end
-                          (fn [{:keys [curr]}]
-                            (steppable? (:coord curr)))))
+  (grid/bfs grid start end
+            (fn [{:keys [curr]}]
+              (steppable? (:coord curr)))))
 
 (doseq [[to path] (grid/walkable-paths grid start steppable?)]
   (swap! cache assoc [start to] (dec (count path))))
@@ -38,7 +35,7 @@
 (defn coords-around [pos dist]
   (for [dx (range (- dist) (inc dist))
         dy (range (- dist) (inc dist))
-        :let [coord (grid/vec+ pos [dx dy])]
+        :let [coord (std/vec+ pos [dx dy])]
         :when (and (not= pos coord)
                    (grid/in-bounds? grid coord)
                    (steppable? coord)
@@ -57,6 +54,6 @@
         (swap! cheat-cnt inc)))
     @cheat-cnt))
 
-(println :pt1 (find-cheat-cnt 2))
-(println :pt2 (find-cheat-cnt 20))
+(println :pt1 (time (find-cheat-cnt 2)))
+(println :pt2 (time (find-cheat-cnt 20)))
 

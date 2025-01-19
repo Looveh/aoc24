@@ -1,9 +1,7 @@
-(ns day22
+(ns y24.d22
   (:require [std :as std]))
 
 (def input
-  #_[1 10 100 2024]
-  #_[1 2 3 2024]
   (map std/->long (std/read-input 2024 22)))
 
 (defn calc-secret-number [sn]
