@@ -161,29 +161,24 @@
        true
 
        (and (input-gate? gate)
-            (= "AND" (:op gate))
+            (contains? #{"AND" "XOR"} (:op gate))
             (= level (input-idx gate)))
        true
 
-       (and (input-gate? gate)
-            (= "XOR" (:op gate))
-            (= level (input-idx gate)))
-       true
+       (and (= "XOR" (:op gate))
+            (not (input-gate? gate))
+            (not (output-gate? gate)))
+       false
 
        (and (output-gate? gate)
             (= "XOR" (:op gate))
             (= level (output-idx gate))
-            (or (and (okay-gate? (first (prev-gates gate))
-                                 level)
-                     (okay-gate? (second (prev-gates gate))
-                                 (dec level)))
-                (and (okay-gate? (first (prev-gates gate))
-                                 (dec level))
-                     (okay-gate? (second (prev-gates gate))
-                                 level))
-                (and
-                 (okay-gate? (prev-input-gate gate) level)
-                 (okay-gate? (-> gate prev-non-input-gate prev-input-gate) (dec level)))))
+            (or (and (okay-gate? (first (prev-gates gate)) level)
+                     (okay-gate? (second (prev-gates gate)) (dec level)))
+                (and (okay-gate? (first (prev-gates gate)) (dec level))
+                     (okay-gate? (second (prev-gates gate)) level))
+                #_(and (okay-gate? (prev-input-gate gate) level)
+                       (okay-gate? (-> gate prev-non-input-gate prev-input-gate) (dec level)))))
        true
 
        (and (= "OR" (:op gate))
@@ -192,17 +187,13 @@
        true
 
        (and (= "AND" (:op gate))
-            (or (and (okay-gate? (first (prev-gates gate))
-                                 level)
-                     (okay-gate? (second (prev-gates gate))
-                                 (dec level)))
-                (and (okay-gate? (first (prev-gates gate))
-                                 (dec level))
-                     (okay-gate? (second (prev-gates gate))
-                                 level))
-                (and
-                 (okay-gate? (prev-input-gate gate) level)
-                 (okay-gate? (-> gate prev-non-input-gate prev-input-gate) (dec level))))
+            (or (and (okay-gate? (first (prev-gates gate)) level)
+                     (okay-gate? (second (prev-gates gate)) (dec level)))
+                (and (okay-gate? (first (prev-gates gate)) (dec level))
+                     (okay-gate? (second (prev-gates gate)) level))
+                #_(and
+                   (okay-gate? (prev-input-gate gate) level)
+                   (okay-gate? (-> gate prev-non-input-gate prev-input-gate) (dec level))))
             #_(okay-gate? (prev-input-gate gate) level)
             #_(okay-gate? (-> gate prev-non-input-gate prev-input-gate) (dec level)))
        true
@@ -286,24 +277,29 @@
 (for [gate gates
       :let [n (gate-idx gate)]
       :when (not (okay-gate? gate n))]
-  [ gate n])
+  [gate n])
 
-#_(->>
+(->>
  (for [gate gates
        :let [n (gate-idx gate)]
        :when (not (okay-gate? gate n))]
    gate)
  (map :out)
  (sort)
+ #_(count)
  (str/join ","))
 
 #_(gate-idx (gate-with-out-port "kpp"))
 
-(prev-gates (gate-with-out-port "sms"))
-(prev-gates (gate-with-out-port "qnv"))
-(okay-gate? (gate-with-out-port "sms") 30)
+(let [port "ctt"
+      gate (gate-with-out-port port)]
+  [gate
+   (gate-idx gate)
+   (okay-gate? gate (gate-idx gate))
+   (prev-gates gate)
+   (map prev-gates (prev-gates gate))])
 
 ; djn,kpp,rqf,sgj,vss,wbv,z36,z45
 ; djn,kpp,rqf,sgj,vss,wbv,z36,z45
-
+; ctt,kpp,rqf,sgj,vss,wbv,z15,z36,z45
 
