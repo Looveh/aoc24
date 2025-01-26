@@ -5,5 +5,8 @@
 .lsp
 .portal
 .nrepl-port
-env.edn
+.env
 inputs/
+zig-out/
+.zig-cache/
+aoc

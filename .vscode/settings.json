@@ -3,7 +3,8 @@
 		{
 			"name": "deps.edn",
 			"projectType": "deps.edn",
-			"autoSelectForJackIn": true
+			"autoSelectForJackIn": true,
+			"projectRootPath": ["clj"]
 		}
 	],
 	"calva.autoOpenInspector": false,
