@@ -1,6 +1,6 @@
 (ns y24.d03
   (:require [clojure.string :as str]
-            [clj.std :as std]))
+            [std :as std]))
 
 (def input
   (std/read-input 24 3))

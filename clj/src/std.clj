@@ -1,13 +1,11 @@
 (ns std
-  (:require
-   [clj-http.client :as http]
-   [clojure.edn :as edn]
-   [clojure.java.io :as io]
-   [clojure.set :as set]
-   [clojure.string :as str]
-   [clojure.test :refer [is]]
-   [grid :as grid]
-   [lambdaisland.dotenv :as dotenv]))
+  (:require [clj-http.client :as http]
+            [clojure.java.io :as io]
+            [clojure.set :as set]
+            [clojure.string :as str]
+            [clojure.test :refer [is]]
+            [grid :as grid]
+            [lambdaisland.dotenv :as dotenv]))
 
 (def env
   (dotenv/parse-dotenv (slurp "../.env")))
@@ -20,7 +18,7 @@
 
 (defn download-input [year day]
   (let [session (env "AOC_SESSION")
-        url (str "https://adventofcode.com/" year "/day/" day "/input")
+        url (str "https://adventofcode.com/20" year "/day/" day "/input")
         response (http/get url {:cookies {"session" {:value session}}})]
     (spit (input-path year day) (:body response))))
 
