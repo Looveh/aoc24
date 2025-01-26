@@ -1,20 +1,18 @@
 const std = @import("std");
+const aoc = @import("aoc.zig");
 
 pub fn run(alc: std.mem.Allocator) !void {
-    const file = try std.fs.cwd().openFile("../inputsff/24/1.txt", .{});
-    defer file.close();
-
-    var buf_reader = std.io.bufferedReader(file.reader());
-    var in_stream = buf_reader.reader();
-
-    var buf: [1024]u8 = undefined;
+    const input = try aoc.readInput(alc, 24, 1);
+    defer alc.free(input);
 
     var left = std.ArrayList(i64).init(alc);
     defer left.deinit();
     var right = std.ArrayList(i64).init(alc);
     defer right.deinit();
 
-    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+    var lines = std.mem.split(u8, input, "\n");
+    while (lines.next()) |line| {
+        if (line.len == 0) continue;
         var iter = std.mem.tokenize(u8, line, " ");
         if (iter.next()) |part| {
             try left.append(try std.fmt.parseInt(i64, part, 10));

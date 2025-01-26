@@ -1,12 +1,13 @@
 const std = @import("std");
 const d01 = @import("d01.zig");
+const d02 = @import("d02.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    const alc = gpa.allocator();
 
-    var args = try std.process.argsWithAllocator(allocator);
+    var args = try std.process.argsWithAllocator(alc);
     defer args.deinit();
 
     _ = args.next();
@@ -17,7 +18,9 @@ pub fn main() !void {
     };
 
     if (std.mem.eql(u8, day, "1")) {
-        try d01.run(allocator);
+        try d01.run(alc);
+    } else if (std.mem.eql(u8, day, "2")) {
+        try d02.run(alc);
     } else {
         std.debug.print("Day {s} not implemented\n", .{day});
         std.process.exit(1);
