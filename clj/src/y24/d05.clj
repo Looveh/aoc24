@@ -1,6 +1,6 @@
 (ns y24.d05
   (:require [clojure.string :as str]
-            [clj.std :as std]))
+            [std :as std]))
 
 (defn parse-input []
   (let [input (std/read-input 24 5)
