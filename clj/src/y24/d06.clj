@@ -1,5 +1,5 @@
 (ns y24.d06
-  (:require [clj.std :as std]))
+  (:require [std :as std]))
 
 (def grid
   (std/read-grid 24 6))

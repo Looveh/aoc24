@@ -11,45 +11,48 @@ pub fn run(alc: std.mem.Allocator) !void {
     var pt1: i64 = 0;
     var pt2: i64 = 0;
 
-    for (0..grid.width) |x| {
-        for (0..grid.height) |y| {
-            if (grid.get(x, y) == 'X' and grid.get(x + 1, y) == 'M' and grid.get(x + 2, y) == 'A' and grid.get(x + 3, y) == 'S') {
+    for (0..grid.width) |_x| {
+        for (0..grid.height) |_y| {
+            const x: i64 = @intCast(_x);
+            const y: i64 = @intCast(_y);
+
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x + 1, .y = y }) == 'M' and grid.get(.{ .x = x + 2, .y = y }) == 'A' and grid.get(.{ .x = x + 3, .y = y }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x - 1, y) == 'M' and grid.get(x - 2, y) == 'A' and grid.get(x - 3, y) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x - 1, .y = y }) == 'M' and grid.get(.{ .x = x - 2, .y = y }) == 'A' and grid.get(.{ .x = x - 3, .y = y }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x, y + 1) == 'M' and grid.get(x, y + 2) == 'A' and grid.get(x, y + 3) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x, .y = y + 1 }) == 'M' and grid.get(.{ .x = x, .y = y + 2 }) == 'A' and grid.get(.{ .x = x, .y = y + 3 }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x, y - 1) == 'M' and grid.get(x, y - 2) == 'A' and grid.get(x, y - 3) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x, .y = y - 1 }) == 'M' and grid.get(.{ .x = x, .y = y - 2 }) == 'A' and grid.get(.{ .x = x, .y = y - 3 }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x + 1, y + 1) == 'M' and grid.get(x + 2, y + 2) == 'A' and grid.get(x + 3, y + 3) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x + 1, .y = y + 1 }) == 'M' and grid.get(.{ .x = x + 2, .y = y + 2 }) == 'A' and grid.get(.{ .x = x + 3, .y = y + 3 }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x - 1, y + 1) == 'M' and grid.get(x - 2, y + 2) == 'A' and grid.get(x - 3, y + 3) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x - 1, .y = y + 1 }) == 'M' and grid.get(.{ .x = x - 2, .y = y + 2 }) == 'A' and grid.get(.{ .x = x - 3, .y = y + 3 }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x + 1, y - 1) == 'M' and grid.get(x + 2, y - 2) == 'A' and grid.get(x + 3, y - 3) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x + 1, .y = y - 1 }) == 'M' and grid.get(.{ .x = x + 2, .y = y - 2 }) == 'A' and grid.get(.{ .x = x + 3, .y = y - 3 }) == 'S') {
                 pt1 += 1;
             }
 
-            if (grid.get(x, y) == 'X' and grid.get(x - 1, y - 1) == 'M' and grid.get(x - 2, y - 2) == 'A' and grid.get(x - 3, y - 3) == 'S') {
+            if (grid.get(.{ .x = x, .y = y }) == 'X' and grid.get(.{ .x = x - 1, .y = y - 1 }) == 'M' and grid.get(.{ .x = x - 2, .y = y - 2 }) == 'A' and grid.get(.{ .x = x - 3, .y = y - 3 }) == 'S') {
                 pt1 += 1;
             }
 
-            const c1 = grid.get(x, y);
-            const c2 = grid.get(x - 1, y - 1);
-            const c3 = grid.get(x + 1, y + 1);
-            const c4 = grid.get(x - 1, y + 1);
-            const c5 = grid.get(x + 1, y - 1);
+            const c1 = grid.get(.{ .x = x, .y = y });
+            const c2 = grid.get(.{ .x = x - 1, .y = y - 1 });
+            const c3 = grid.get(.{ .x = x + 1, .y = y + 1 });
+            const c4 = grid.get(.{ .x = x - 1, .y = y + 1 });
+            const c5 = grid.get(.{ .x = x + 1, .y = y - 1 });
 
             if (c1 == 'A' and c2 == 'M' and c3 == 'S' and c4 == 'M' and c5 == 'S') {
                 pt2 += 1;
